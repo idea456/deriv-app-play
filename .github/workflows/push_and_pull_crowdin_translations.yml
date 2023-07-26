@@ -4,6 +4,14 @@ on:
   repository_dispatch:
     types:
       - file-fully-reviewed
+      
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  deployments: write
+  pull-requests: write
+  statuses: write
 
 jobs:
   synchronize-with-crowdin:
@@ -24,10 +32,8 @@ jobs:
       - name: Get cached dependencies
         id: cache_npm
         uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
         with:
-          key: ${{ runner.os }}-build-${{ steps.generate_cache_key.outputs.cache_key1 }}
+          key: translations-build-${{ steps.generate_cache_key.outputs.cache_key1 }}
           path: |
               node_modules
               packages/account/node_modules
@@ -105,7 +111,10 @@ jobs:
             sudo apt install gh
             gh auth login --with-token <<< ${{ github.token }}
             # gh pr close "$branch_name" || true
-            gh pr create --fill --base "master" --head "adrienne-deriv:$branch_name"
+            if ! gh pr list --head "$branch_name" --state open | grep -q "$branch"; then
+              echo "Translations pull request has not been created yet, creating one..."
+              gh pr create --fill --base "master" --head "adrienne-deriv:$branch_name"
+            fi
           fi
 
 
