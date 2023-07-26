@@ -113,7 +113,7 @@ jobs:
             # gh pr close "$branch_name" || true
             if ! gh pr list --head "$branch_name" --state open | grep -q "$branch"; then
               echo "Translations pull request has not been created yet, creating one..."
-              gh pr create --fill --base "master" --head "adrienne-deriv:$branch_name"
+              gh pr create --fill --base "master" --head "idea456:$branch_name"
             fi
           fi
 
