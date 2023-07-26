@@ -65,12 +65,13 @@ jobs:
         if: ${{ steps.cache_npm.outputs.cache-hit != 'true' }}
         run: |
           npm run bootstrap
-
+      
       # In this step we're doing a couple things:
       # - We generate a new messages.json
       # - We hash the newly generated messages.json and compare it with the messages.json on Crowdin.
       # - We download the latest translation files from Crowdin, if there are new files, we create a PR.
-      - name: Generate and push to Crowdin
+      - name: Download from Crowdin
+        id: download_crowdin  
         run: |
           branch_name="deriv_app_translations"
 
@@ -99,10 +100,12 @@ jobs:
           # cd $(git rev-parse --show-toplevel)/packages/p2p
           # echo "Attempting to download updated translations from P2P Crowdin"
           # crowdin download sources -T ${{ secrets.CROWDIN_API_KEY }} -i ${{ secrets.CROWDIN_PROJECT_ID }}
-
+            
+          has_new_translations=false
           if [ -z "$(git status --porcelain)" ]; then
             echo "Found no new translation files that need to be merged with master. Not creating a PR."
           else
+            has_new_translations=true
             echo "Found updated translation files that need to be merged with master. Creating a PR."
 
             # Commit the newly downloaded files
@@ -116,11 +119,9 @@ jobs:
             sudo apt install gh
             gh auth login --with-token <<< ${{ github.token }}
             # gh pr close "$branch_name" || true
-            if ! gh pr list --head "$branch_name" --state open | grep -q "$branch"; then
+            if ! gh pr list --head "$branch_name" --state open | grep -q "$branch_name"; then
               echo "Translations pull request has not been created yet, creating one..."
               gh pr create --fill --base "master" --head "idea456:$branch_name"
             fi
           fi
-
-
-      
+          
