@@ -85,6 +85,7 @@ jobs:
           # npm run bootstrap
 
           echo "Checking out new branch [$branch_name]"
+          git fetch --set-upstream origin "$branch_name"
           git checkout -b "$branch_name"
 
           # Download latest translations from Deriv-app Crowdin
